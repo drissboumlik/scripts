@@ -24,7 +24,7 @@ function Display-Service-Status {
             Write-Host $service.Status -ForegroundColor $color
         } catch {
             $dots = '.' * ($maxLineLength - $serviceName.Length)
-            Write-Host "$serviceName $dots " -NoNewline
+            Write-Host "- $serviceName $dots " -NoNewline
             Write-Host "NOT FOUND" -ForegroundColor Yellow
         }
     }
