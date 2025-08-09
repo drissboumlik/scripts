@@ -50,6 +50,10 @@ $dirs | ForEach-Object {
     }
     Write-Host "`n`nRunning docker-compose $operation in $($_.Name)`n" -ForegroundColor DarkCyan
     Push-Location $_.FullName
-    docker-compose $operation
+    if ($operation -eq "status") {
+        docker-compose ps --status running
+    } else {
+        docker-compose $operation
+    }
     Pop-Location
 }
