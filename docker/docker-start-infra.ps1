@@ -1,10 +1,10 @@
-param ([string]$operation)
+param ($operation)
 
 $directory = (Get-Location).Path
 $sub_directories = $args
 
 if (-not $directory -or -not $operation) {
-    Write-Host "`nUsage: dcstart -operation <start|stop|restart>"
+    Write-Host "`nUsage: dcwalk <start|stop|restart|status>"
     exit 1
 }
 
@@ -13,8 +13,8 @@ if (-not (Test-Path -Path $directory)) {
     exit 1
 }
 
-if ($operation -notin @('start', 'stop', 'restart')) {
-    Write-Host "`nInvalid operation '$operation'. Use 'start', 'stop', or 'restart'." -ForegroundColor DarkYellow
+if ($operation -notin @('start', 'stop', 'restart', 'status')) {
+    Write-Host "`nInvalid operation '$operation'. Use 'status', 'start', 'stop', or 'restart'." -ForegroundColor DarkYellow
     exit 1
 }
 
@@ -33,6 +33,18 @@ if ($sub_directories) {
 if ($dirs.Length -eq 0) {
     Write-Host "`nNo directories found in '$directory' to process" -ForegroundColor DarkYellow
     exit 0    
+}
+
+$dirs = $dirs | Sort-Object {
+    if ($_.Name -eq "infrastructure") {
+        if ($operation -eq "start") {
+            return -1 # top
+        } if ($operation -eq "stop") {
+            return 1 # bottom
+        }
+    } else {
+        return 0  # leave others unchanged
+    }
 }
 
 Write-Host "`nDirectories to process in '$directory':" -ForegroundColor Green
