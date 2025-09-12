@@ -4,141 +4,161 @@ param([string]$operation)
 
 $serviceNames = $args
 
-# Define services and their commands
-$services = [ordered]@{
-    "docker" = @{
-        "actions" = @{
-            "start" = @{ action = {
-                Start-Service "com.docker.service" -ErrorAction SilentlyContinue
-                return 0
-            }; success = "Docker service started."; failure = "Failed to start Docker service." }
-            "stop" = @{ action = {
-                Stop-Service "com.docker.service" -ErrorAction SilentlyContinue
-                return 0
-            }; success = "Docker service stopped."; failure = "Failed to stop Docker service." }
-            "restart" = @{ action = {
-                Restart-Service "com.docker.service" -ErrorAction SilentlyContinue
-                return 0
-            }; success = "Docker service restarted."; failure = "Failed to restart Docker service." }
-            "status" = @{ action = {
-                Display-Service-Status -servicesNames @("com.docker.service") -displayedServiceName "Docker"
-                return 0
-            }}
+function Get-Services-List {
+    return [ordered]@{
+        "docker" = @{
+            "actions" = @{
+                "start" = @{ action = {
+                    Start-Service "com.docker.service" -ErrorAction SilentlyContinue
+                    return 0
+                }; success = "Docker service started."; failure = "Failed to start Docker service." }
+                "stop" = @{ action = {
+                    Stop-Service "com.docker.service" -ErrorAction SilentlyContinue
+                    return 0
+                }; success = "Docker service stopped."; failure = "Failed to stop Docker service." }
+                "restart" = @{ action = {
+                    Restart-Service "com.docker.service" -ErrorAction SilentlyContinue
+                    return 0
+                }; success = "Docker service restarted."; failure = "Failed to restart Docker service." }
+                "status" = @{ action = {
+                    Display-Service-Status -servicesNames @("com.docker.service") -displayedServiceName "Docker"
+                    return 0
+                }}
+            }
         }
-    }
-    "mariadb" = @{
-        "actions" = @{
-            "start" = @{ action = {
-                Start-Service "MariaDB" -ErrorAction SilentlyContinue
-                return 0
-            }; success = "MariaDB service started."; failure = "Failed to start MariaDB service." }
-            "stop" = @{ action = {
-                Stop-Service "MariaDB" -ErrorAction SilentlyContinue
-                return 0
-            }; success = "MariaDB service stopped."; failure = "Failed to stop MariaDB service." }
-            "restart" = @{ action = {
-                Restart-Service "MariaDB" -ErrorAction SilentlyContinue
-                return 0
-            }; success = "MariaDB service restarted."; failure = "Failed to restart MariaDB service." }
-            "status" = @{ action = {
-                Display-Service-Status -servicesNames @("MariaDB") -displayedServiceName "MariaDB"
-                return 0
-            }}
+        "mysql" = @{
+            "actions" = @{
+                "start" = @{ action = {
+                    Start-Service "MySQL84" -ErrorAction SilentlyContinue
+                    return 0
+                }; success = "MySQL service started."; failure = "Failed to start MySQL service." }
+                "stop" = @{ action = {
+                    Stop-Service "MySQL84" -ErrorAction SilentlyContinue
+                    return 0
+                }; success = "MySQL service stopped."; failure = "Failed to stop MySQL service." }
+                "restart" = @{ action = {
+                    Restart-Service "MySQL84" -ErrorAction SilentlyContinue
+                    return 0
+                }; success = "MySQL service restarted."; failure = "Failed to restart MySQL service." }
+                "status" = @{ action = {
+                    Display-Service-Status -servicesNames @("MySQL84") -displayedServiceName "MySQL"
+                    return 0
+                }}
+            }
         }
-    }
-    "postgres" = @{
-        "actions" = @{
-            "start" = @{ action = {
-                Start-Service "postgresql-x64-17" -ErrorAction SilentlyContinue
-                return 0
-            }; success = "Postgres service started."; failure = "Failed to start Postgres service." }
-            "stop" = @{ action = {
-                Stop-Service "postgresql-x64-17" -ErrorAction SilentlyContinue
-                return 0
-            }; success = "Postgres service stopped."; failure = "Failed to stop Postgres service." }
-            "restart" = @{ action = {
-                Restart-Service "postgresql-x64-17" -ErrorAction SilentlyContinue
-                return 0
-            }; success = "Postgres service restarted."; failure = "Failed to restart Postgres service." }
-            "status" = @{ action = {
-                Display-Service-Status -servicesNames @("postgresql-x64-17") -displayedServiceName "Postgres"
-                return 0
-            }}
+        "mariadb" = @{
+            "actions" = @{
+                "start" = @{ action = {
+                    Start-Service "MariaDB" -ErrorAction SilentlyContinue
+                    return 0
+                }; success = "MariaDB service started."; failure = "Failed to start MariaDB service." }
+                "stop" = @{ action = {
+                    Stop-Service "MariaDB" -ErrorAction SilentlyContinue
+                    return 0
+                }; success = "MariaDB service stopped."; failure = "Failed to stop MariaDB service." }
+                "restart" = @{ action = {
+                    Restart-Service "MariaDB" -ErrorAction SilentlyContinue
+                    return 0
+                }; success = "MariaDB service restarted."; failure = "Failed to restart MariaDB service." }
+                "status" = @{ action = {
+                    Display-Service-Status -servicesNames @("MariaDB") -displayedServiceName "MariaDB"
+                    return 0
+                }}
+            }
         }
-    }
-    "valet" = @{
-        "actions" = @{
-            "start" = @{ action = {
-                $exitCode = $services["valet"]["actions"]["default"].action.Invoke()
-                return $exitCode
-            }; success = "Valet services started."; failure = "Failed to start Valet services." }
-            "stop" = @{ action = {
-                $exitCode = $services["valet"]["actions"]["default"].action.Invoke()
-                return $exitCode
-            }; success = "Valet services stopped."; failure = "Failed to stop Valet services." }
-            "restart" = @{ action = {
-                $exitCode = $services["valet"]["actions"]["default"].action.Invoke()
-                return $exitCode
-            }; success = "Valet services restarted."; failure = "Failed to restart Valet services." }
-            "default" = @{ action = {
-                # Path to valet.bat
-                $valetBat = "$env:APPDATA\Composer\vendor\bin\valet.bat"
-                
-                if (-not (Test-Path $valetBat)) {
-                    Write-Host "`nOups! Could not find valet.bat at:" -ForegroundColor DarkYellow
-                    Write-Host $valetBat
-                    exit 1
-                }
-                
-                # Run valet command
-                $startInfo = New-Object System.Diagnostics.ProcessStartInfo
-                $startInfo.FileName = $valetBat
-                $startInfo.Arguments = $operation
-                $startInfo.RedirectStandardOutput = $true
-                $startInfo.RedirectStandardError = $true
-                $startInfo.UseShellExecute = $false
-                $startInfo.CreateNoWindow = $true
+        "postgres" = @{
+            "actions" = @{
+                "start" = @{ action = {
+                    Start-Service "postgresql-x64-17" -ErrorAction SilentlyContinue
+                    return 0
+                }; success = "Postgres service started."; failure = "Failed to start Postgres service." }
+                "stop" = @{ action = {
+                    Stop-Service "postgresql-x64-17" -ErrorAction SilentlyContinue
+                    return 0
+                }; success = "Postgres service stopped."; failure = "Failed to stop Postgres service." }
+                "restart" = @{ action = {
+                    Restart-Service "postgresql-x64-17" -ErrorAction SilentlyContinue
+                    return 0
+                }; success = "Postgres service restarted."; failure = "Failed to restart Postgres service." }
+                "status" = @{ action = {
+                    Display-Service-Status -servicesNames @("postgresql-x64-17") -displayedServiceName "Postgres"
+                    return 0
+                }}
+            }
+        }
+        "valet" = @{
+            "actions" = @{
+                "start" = @{ action = {
+                    $exitCode = $services["valet"]["actions"]["default"].action.Invoke()
+                    return $exitCode
+                }; success = "Valet services started."; failure = "Failed to start Valet services." }
+                "stop" = @{ action = {
+                    $exitCode = $services["valet"]["actions"]["default"].action.Invoke()
+                    return $exitCode
+                }; success = "Valet services stopped."; failure = "Failed to stop Valet services." }
+                "restart" = @{ action = {
+                    $exitCode = $services["valet"]["actions"]["default"].action.Invoke()
+                    return $exitCode
+                }; success = "Valet services restarted."; failure = "Failed to restart Valet services." }
+                "default" = @{ action = {
+                    # Path to valet.bat
+                    $valetBat = "$env:APPDATA\Composer\vendor\bin\valet.bat"
+                    
+                    if (-not (Test-Path $valetBat)) {
+                        Write-Host "`nOups! Could not find valet.bat at:" -ForegroundColor DarkYellow
+                        Write-Host $valetBat
+                        exit 1
+                    }
+                    
+                    # Run valet command
+                    $startInfo = New-Object System.Diagnostics.ProcessStartInfo
+                    $startInfo.FileName = $valetBat
+                    $startInfo.Arguments = $operation
+                    $startInfo.RedirectStandardOutput = $true
+                    $startInfo.RedirectStandardError = $true
+                    $startInfo.UseShellExecute = $false
+                    $startInfo.CreateNoWindow = $true
 
-                $proc = New-Object System.Diagnostics.Process
-                $proc.StartInfo = $startInfo
-                $proc.Start() | Out-Null
+                    $proc = New-Object System.Diagnostics.Process
+                    $proc.StartInfo = $startInfo
+                    $proc.Start() | Out-Null
 
-                $output = $proc.StandardOutput.ReadToEnd()
-                $errorOutput = $proc.StandardError.ReadToEnd()
-                $proc.WaitForExit()
-                
-                return $proc.ExitCode
-            }}
-            "status" = @{ action = {
-                Display-Service-Status -servicesNames $services["valet"]["list"] -displayedServiceName "Valet"
-                return 0
-            }}
+                    $output = $proc.StandardOutput.ReadToEnd()
+                    $errorOutput = $proc.StandardError.ReadToEnd()
+                    $proc.WaitForExit()
+                    
+                    return $proc.ExitCode
+                }}
+                "status" = @{ action = {
+                    Display-Service-Status -servicesNames $services["valet"]["list"] -displayedServiceName "Valet"
+                    return 0
+                }}
+            }
+            "list" = @("valet_phpcgi_xdebug", "valet_phpcgi", "valet_nginx")
         }
-        "list" = @("valet_phpcgi_xdebug", "valet_phpcgi", "valet_nginx")
-    }
-    "vmware" = @{
-        "actions" = @{
-            "start" = @{ action = {
-                $services["vmware"]["list"] | ForEach-Object { Start-Service $_ -ErrorAction SilentlyContinue }
-                return 0
-            }; success = "VMware services started."; failure = "Failed to start VMware services." }
-            "stop" = @{ action = {
-                $services["vmware"]["list"] | ForEach-Object { Stop-Service $_ -ErrorAction SilentlyContinue }
-                return 0
-            }; success = "VMware services stopped."; failure = "Failed to stop VMware services." }
-            "restart" = @{ action = {
-                $services["vmware"]["list"] | ForEach-Object { Restart-Service $_ -ErrorAction SilentlyContinue }
-                return 0
-            }; success = "VMware services restarted."; failure = "Failed to restart VMware services." }
-            "status" = @{ action = {
-                Display-Service-Status -servicesNames $services["vmware"]["list"] -displayedServiceName "VMWare"
-                return 0
-            }}
+        "vmware" = @{
+            "actions" = @{
+                "start" = @{ action = {
+                    $services["vmware"]["list"] | ForEach-Object { Start-Service $_ -ErrorAction SilentlyContinue }
+                    return 0
+                }; success = "VMware services started."; failure = "Failed to start VMware services." }
+                "stop" = @{ action = {
+                    $services["vmware"]["list"] | ForEach-Object { Stop-Service $_ -ErrorAction SilentlyContinue }
+                    return 0
+                }; success = "VMware services stopped."; failure = "Failed to stop VMware services." }
+                "restart" = @{ action = {
+                    $services["vmware"]["list"] | ForEach-Object { Restart-Service $_ -ErrorAction SilentlyContinue }
+                    return 0
+                }; success = "VMware services restarted."; failure = "Failed to restart VMware services." }
+                "status" = @{ action = {
+                    Display-Service-Status -servicesNames $services["vmware"]["list"] -displayedServiceName "VMWare"
+                    return 0
+                }}
+            }
+            "list" = @("VMAuthdService", "VmwareAutostartService", "VMnetDHCP", "VMware NAT Service", "VMUSBArbService")
         }
-        "list" = @("VMAuthdService", "VmwareAutostartService", "VMnetDHCP", "VMware NAT Service", "VMUSBArbService")
     }
 }
-
 
 function Show-Services {
     Write-Host "`nSupported services:"
@@ -175,6 +195,7 @@ function Run-Operation {
     return $exitCode
 }
 
+$services = Get-Services-List
 
 if ($operation -eq "") {
     Write-Host "`nUsage: svc [start|stop|restart|status] [service name]"
