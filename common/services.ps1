@@ -9,15 +9,15 @@ function Get-Services-List {
         "docker" = @{
             "actions" = @{
                 "start" = @{ action = {
-                    Start-Service "com.docker.service" -ErrorAction SilentlyContinue
+                    Start-Service "com.docker.service" -ErrorAction Stop
                     return 0
                 }; success = "Docker service started."; failure = "Failed to start Docker service." }
                 "stop" = @{ action = {
-                    Stop-Service "com.docker.service" -ErrorAction SilentlyContinue
+                    Stop-Service "com.docker.service" -ErrorAction Stop
                     return 0
                 }; success = "Docker service stopped."; failure = "Failed to stop Docker service." }
                 "restart" = @{ action = {
-                    Restart-Service "com.docker.service" -ErrorAction SilentlyContinue
+                    Restart-Service "com.docker.service" -ErrorAction Stop
                     return 0
                 }; success = "Docker service restarted."; failure = "Failed to restart Docker service." }
                 "status" = @{ action = {
@@ -29,15 +29,15 @@ function Get-Services-List {
         "mysql" = @{
             "actions" = @{
                 "start" = @{ action = {
-                    Start-Service "MySQL84" -ErrorAction SilentlyContinue
+                    Start-Service "MySQL84" -ErrorAction Stop
                     return 0
                 }; success = "MySQL service started."; failure = "Failed to start MySQL service." }
                 "stop" = @{ action = {
-                    Stop-Service "MySQL84" -ErrorAction SilentlyContinue
+                    Stop-Service "MySQL84" -ErrorAction Stop
                     return 0
                 }; success = "MySQL service stopped."; failure = "Failed to stop MySQL service." }
                 "restart" = @{ action = {
-                    Restart-Service "MySQL84" -ErrorAction SilentlyContinue
+                    Restart-Service "MySQL84" -ErrorAction Stop
                     return 0
                 }; success = "MySQL service restarted."; failure = "Failed to restart MySQL service." }
                 "status" = @{ action = {
@@ -49,15 +49,15 @@ function Get-Services-List {
         "mariadb" = @{
             "actions" = @{
                 "start" = @{ action = {
-                    Start-Service "MariaDB" -ErrorAction SilentlyContinue
+                    Start-Service "MariaDB" -ErrorAction Stop
                     return 0
                 }; success = "MariaDB service started."; failure = "Failed to start MariaDB service." }
                 "stop" = @{ action = {
-                    Stop-Service "MariaDB" -ErrorAction SilentlyContinue
+                    Stop-Service "MariaDB" -ErrorAction Stop
                     return 0
                 }; success = "MariaDB service stopped."; failure = "Failed to stop MariaDB service." }
                 "restart" = @{ action = {
-                    Restart-Service "MariaDB" -ErrorAction SilentlyContinue
+                    Restart-Service "MariaDB" -ErrorAction Stop
                     return 0
                 }; success = "MariaDB service restarted."; failure = "Failed to restart MariaDB service." }
                 "status" = @{ action = {
@@ -69,15 +69,15 @@ function Get-Services-List {
         "postgres" = @{
             "actions" = @{
                 "start" = @{ action = {
-                    Start-Service "postgresql-x64-17" -ErrorAction SilentlyContinue
+                    Start-Service "postgresql-x64-17" -ErrorAction Stop
                     return 0
                 }; success = "Postgres service started."; failure = "Failed to start Postgres service." }
                 "stop" = @{ action = {
-                    Stop-Service "postgresql-x64-17" -ErrorAction SilentlyContinue
+                    Stop-Service "postgresql-x64-17" -ErrorAction Stop
                     return 0
                 }; success = "Postgres service stopped."; failure = "Failed to stop Postgres service." }
                 "restart" = @{ action = {
-                    Restart-Service "postgresql-x64-17" -ErrorAction SilentlyContinue
+                    Restart-Service "postgresql-x64-17" -ErrorAction Stop
                     return 0
                 }; success = "Postgres service restarted."; failure = "Failed to restart Postgres service." }
                 "status" = @{ action = {
@@ -139,15 +139,15 @@ function Get-Services-List {
         "vmware" = @{
             "actions" = @{
                 "start" = @{ action = {
-                    $services["vmware"]["list"] | ForEach-Object { Start-Service $_ -ErrorAction SilentlyContinue }
+                    $services["vmware"]["list"] | ForEach-Object { Start-Service $_ -ErrorAction Stop }
                     return 0
                 }; success = "VMware services started."; failure = "Failed to start VMware services." }
                 "stop" = @{ action = {
-                    $services["vmware"]["list"] | ForEach-Object { Stop-Service $_ -ErrorAction SilentlyContinue }
+                    $services["vmware"]["list"] | ForEach-Object { Stop-Service $_ -ErrorAction Stop }
                     return 0
                 }; success = "VMware services stopped."; failure = "Failed to stop VMware services." }
                 "restart" = @{ action = {
-                    $services["vmware"]["list"] | ForEach-Object { Restart-Service $_ -ErrorAction SilentlyContinue }
+                    $services["vmware"]["list"] | ForEach-Object { Restart-Service $_ -ErrorAction Stop }
                     return 0
                 }; success = "VMware services restarted."; failure = "Failed to restart VMware services." }
                 "status" = @{ action = {
@@ -183,7 +183,12 @@ function Operations {
 function Run-Operation {
 
     foreach ($serviceName in $serviceNames) {
-        $exitCode = & $services[$serviceName]['actions'][$operation].action
+        $exitCode = 0
+        try {
+            $exitCode = $services[$serviceName]['actions'][$operation].action.InvokeReturnAsIs()
+        } catch {
+            $exitCode = 1
+        }
 
         if ($exitCode -eq 0) {
             Write-Host $services[$serviceName]['actions'][$operation].success -ForegroundColor DarkGreen
