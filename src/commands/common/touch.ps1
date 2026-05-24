@@ -4,9 +4,7 @@
 # You might need to run this before: Set-ExecutionPolicy Bypass -Scope Process -Force if you are using powershell
 
 
-param (
-    [string]$FilePath
-)
+param ( [string]$FilePath )
 
 try {
     # Normalize path to use the current OS directory separator

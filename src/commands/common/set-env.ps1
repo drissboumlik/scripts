@@ -10,7 +10,7 @@
 # Parameters:
 param( [string]$variableName, [string]$variableValue )
 
-. $PSScriptRoot\..\imports\functions.ps1
+. $PSScriptRoot\..\..\helpers\functions.ps1
 
 if (-not $variableName -or -not $variableValue) {
 	Write-Host "Error: Please provide both a variable name and value." -ForegroundColor DarkYellow
