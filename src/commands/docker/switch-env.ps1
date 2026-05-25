@@ -3,6 +3,11 @@ param (
     [string]$env
 )
 
+if (-not $env) {
+    Write-Host "Error: Please specify an environment to switch to (docker or local)." -ForegroundColor DarkYellow
+    exit 1
+}
+
 $currentDir = $PWD.Path
 
 switch ($env) {

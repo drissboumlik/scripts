@@ -7,6 +7,11 @@
 param ( [string]$FilePath )
 
 try {
+    if (-not $FilePath) {
+        Write-Host "Error: Please provide a file path to create." -ForegroundColor DarkYellow
+        exit 1
+    }
+    
     # Normalize path to use the current OS directory separator
     $normalizedPath = $FilePath -replace '[\\/]', [IO.Path]::DirectorySeparatorChar
 
