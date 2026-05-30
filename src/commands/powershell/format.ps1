@@ -19,27 +19,42 @@ if (-not (Get-Module PSScriptAnalyzer -ListAvailable)) {
 # Import the module
 Import-Module PSScriptAnalyzer -Force
 
-$IncludeRules = @('AvoidSemicolonsAsLineTerminators')
-$ExcludeRules = @('PSUseSingularNouns')
+$settings = @{
+    IncludeRules = @(
+        'PSUseConsistentIndentation'
+        'PSUseConsistentWhitespace'
+        'PSPlaceOpenBrace'
+        'PSPlaceCloseBrace'
+        'PSAlignAssignmentStatement'
+        'PSAvoidTrailingWhitespace'
+        'PSAvoidSemicolonsAsLineTerminators'
+        'PSPossibleIncorrectComparisonWithNull'
+        'PSPossibleIncorrectUsageOfAssignmentOperator'
+        'PSAvoidLongLines'
+    )
+
+    Rules = @{
+        PSUseConsistentIndentation = @{
+            Kind = 'space'
+            IndentationSize = 4
+        }
+
+        PSUseConsistentWhitespace = @{
+            CheckInnerBrace = $true
+            CheckOpenBrace = $true
+            CheckOpenParen = $true
+            CheckOperator = $true
+            CheckPipe = $true
+            CheckSeparator = $true
+        }
+    }
+}
 
 Get-ChildItem "$targetDirectory\*.ps1" -Recurse -File | ForEach-Object {
     try {
         Write-Host "`n`nFormatting: $($_.FullName)`n" -ForegroundColor Cyan
-        # Build parameter splat for Invoke-ScriptAnalyzer so include/exclude/settings are optional
-        $invokeParams = @{
-            Path = $_.FullName
-            Fix  = $true
-        }
 
-        if ($IncludeRules -and $IncludeRules.Count -gt 0) {
-            $invokeParams.IncludeRule = $IncludeRules
-        }
-        if ($ExcludeRules -and $ExcludeRules.Count -gt 0) {
-            $invokeParams.ExcludeRule = $ExcludeRules
-        }
-        
-        Invoke-ScriptAnalyzer @invokeParams
-        # Invoke-ScriptAnalyzer -Path $_.FullName -Fix -ExcludeRule PSUseSingularNouns
+        Invoke-ScriptAnalyzer -Path $_.FullName -Fix -Settings $settings
         $formatted++
     } catch {
         $errors += "Error formatting file: $($_.FullName) - $_"
