@@ -1,4 +1,4 @@
-# To run this script:
+﻿# To run this script:
 # powershell -ExecutionPolicy Bypass -File "path\to\script\touch.ps1" path/to/file.ext
 
 # You might need to run this before: Set-ExecutionPolicy Bypass -Scope Process -Force if you are using powershell
@@ -11,7 +11,7 @@ try {
         Write-Host "Error: Please provide a file path to create." -ForegroundColor DarkYellow
         exit 1
     }
-    
+
     # Normalize path to use the current OS directory separator
     $normalizedPath = $FilePath -replace '[\\/]', [IO.Path]::DirectorySeparatorChar
 

@@ -1,8 +1,8 @@
-
+﻿
 # To run this script:
 # powershell -ExecutionPolicy Bypass -File "path\to\script\set-env.ps1" -variableName "[ENV VARIABLE]" -variableValue "[DIRECTORY OR ENV VARIABLE]"
 
-# If you have chocolatey installed add the RefreshEnv command to reload the environment variables 
+# If you have chocolatey installed add the RefreshEnv command to reload the environment variables
 # powershell -ExecutionPolicy Bypass -File "path\to\script\set-env.ps1" -variableName "[ENV VARIABLE]" -variableValue "[DIRECTORY OR ENV VARIABLE]" && RefreshEnv.cmd
 
 # You might need to run this before: Set-ExecutionPolicy Bypass -Scope Process -Force if you are using powershell
@@ -18,7 +18,7 @@ if (-not $variableName -or -not $variableValue) {
 }
 
 try {
-	
+
 	if (Is-Admin) {
 		$variableValueContent = [System.Environment]::GetEnvironmentVariable($variableValue, [System.EnvironmentVariableTarget]::Machine)
 		if ($variableValueContent) {
@@ -37,10 +37,10 @@ try {
 
 	# Relaunch as administrator with hidden window
 	$arguments = "-ExecutionPolicy Bypass -File `"$PSCommandPath`" -variableName `"$variableName`" -variableValue `"$variableValue`""
-	$process = Start-Process powershell -ArgumentList $arguments -Verb RunAs -WindowStyle Hidden -PassThru  
+	$process = Start-Process powershell -ArgumentList $arguments -Verb RunAs -WindowStyle Hidden -PassThru
 	$process.WaitForExit()
 	$exitCode = $process.ExitCode
-	
+
 	if ($exitCode -eq 0) {
 		Write-Host "Environment variable '$variableName' set to '$variableValue' at the system level." -ForegroundColor DarkGreen
 	} else {

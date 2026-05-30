@@ -1,4 +1,4 @@
-# To run this script:
+﻿# To run this script:
 # powershell -ExecutionPolicy Bypass -File "path\to\script\update-branches.ps1" -Branches master,staging -Remotes origin,github
 
 # You might need to run this before: Set-ExecutionPolicy Bypass -Scope Process -Force if you are using powershell
@@ -31,7 +31,7 @@ function Push-To-Remote {
         $branch,
         $RemoteArray
     )
-    
+
     foreach ($remote in $RemoteArray) {
         git push $remote $branch
     }
@@ -47,7 +47,7 @@ foreach ($branch in $BranchArray) {
         Write-Host "`nSkipping the current branch '$CurrentBranch'." -ForegroundColor DarkYellow
         continue
     }
-    
+
     Write-Host "`nChecking out branch '$branch'..." -ForegroundColor Cyan
     git checkout $branch
 

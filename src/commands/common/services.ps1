@@ -1,4 +1,4 @@
-param([string]$operation)
+﻿param([string]$operation)
 
 . $PSScriptRoot\..\..\helpers\functions.ps1
 
@@ -27,16 +27,16 @@ function Get-Services-List {
             "services" = @("valet_phpcgi_xdebug", "valet_phpcgi", "valet_nginx")
             "action" = {
                 param ($operation)
-                
+
                 # Path to valet.bat
                 $valetBat = "$env:APPDATA\Composer\vendor\bin\valet.bat"
-                
+
                 if (-not (Test-Path $valetBat)) {
                     Write-Host "`nOups! Could not find valet.bat at:" -ForegroundColor DarkYellow
                     Write-Host $valetBat
                     exit 1
                 }
-                
+
                 # Run valet command
                 $startInfo = New-Object System.Diagnostics.ProcessStartInfo
                 $startInfo.FileName = $valetBat
@@ -53,7 +53,7 @@ function Get-Services-List {
                 $output = $proc.StandardOutput.ReadToEnd()
                 $errorOutput = $proc.StandardError.ReadToEnd()
                 $proc.WaitForExit()
-                
+
                 return $proc.ExitCode
             }
         }
@@ -82,20 +82,20 @@ function Get-Operations {
 
 function Run-Operation-On-Service {
     param ($serviceObject, $operation)
-    
+
     if ($operation -ne "status" -and $null -ne $serviceObject.action) {
         return $serviceObject.action.Invoke($operation)
     }
-    
+
     $runner = @{
         "start" = {  $serviceObject.services | ForEach-Object { Start-Service $_ -ErrorAction Stop } }
         "stop" = {  $serviceObject.services | ForEach-Object { Stop-Service $_ -ErrorAction Stop } }
         "restart" = {  $serviceObject.services | ForEach-Object { Restart-Service $_ -ErrorAction Stop } }
         "status" = { Display-Service-Status -servicesNames $serviceObject.services -displayedServiceName $serviceObject.displayName }
     }
-    
+
     $runner[$operation].Invoke()
-    
+
     return 0
 }
 
@@ -139,23 +139,23 @@ if ($operation -eq "status") {
     if ($null -eq $serviceNames -or $serviceNames.Count -eq 0) {
         $serviceNames = $services.Keys
     }
-    
+
     $matchingServices = $services.Keys | Where-Object { $serviceNames -contains $_ }
-    
+
     if ($matchingServices.Count -eq 0) {
         Write-Host "`nNo matching services found for the provided names."
         Show-Services -services $services
         exit 1
     }
-    
+
     Write-Host "`n" -NoNewline
-    
+
     $serviceNames | ForEach-Object {
         $serviceObject = $services[$_]
         Display-Service-Status -servicesNames $serviceObject.services -displayedServiceName $serviceObject.displayName
         Write-Host "`n" -NoNewline
     }
-    
+
     exit 0
 }
 
@@ -191,10 +191,10 @@ if (Is-Admin) {
 # Not admin - relaunch as admin
 try {
     $arguments = "-ExecutionPolicy Bypass -File `"$PSCommandPath`" $operation $serviceNames"
-    $process = Start-Process powershell -ArgumentList $arguments -Verb RunAs -WindowStyle Hidden -PassThru  
+    $process = Start-Process powershell -ArgumentList $arguments -Verb RunAs -WindowStyle Hidden -PassThru
     $process.WaitForExit()
     $exitCode = $process.ExitCode
-    
+
     Write-Host "`n" -NoNewline
     foreach ($serviceName in $serviceNames) {
         if ($exitCode -eq 0) {

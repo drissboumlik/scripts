@@ -1,4 +1,4 @@
-param ($operation)
+﻿param ($operation)
 
 $directory = (Get-Location).Path
 $sub_directories = $args
@@ -32,7 +32,7 @@ if ($sub_directories) {
 
 if ($dirs.Length -eq 0) {
     Write-Host "`nNo directories found in '$directory' to process" -ForegroundColor DarkYellow
-    exit 0    
+    exit 0
 }
 
 $dirs = $dirs | Sort-Object {
