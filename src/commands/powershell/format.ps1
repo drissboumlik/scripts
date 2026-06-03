@@ -5,6 +5,11 @@ if (-not $targetDirectory) {
     $targetDirectory = (Get-Location).Path
 }
 
+if (-not (Test-Path -Path $targetDirectory)) {
+    Write-Host "`nDirectory '$targetDirectory' does not exist." -ForegroundColor DarkYellow
+    exit 1
+}
+
 
 $errors = @()
 $formatted = 0
