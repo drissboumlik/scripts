@@ -12,6 +12,10 @@ $currentDir = $PWD.Path
 
 switch ($env) {
     "docker" {
+        if (-Not (Test-Path "$currentDir\.docker\app\.docker.env")) {
+            Write-Host "Error: .docker\app\.docker.env directory not found in current directory." -ForegroundColor DarkYellow
+            exit 1
+        }
         Copy-Item "$currentDir\.docker\app\.docker.env" "$currentDir\.env" -Force
         Copy-Item "$currentDir\.docker\app\.docker.testing.env" "$currentDir\.env.testing" -Force
 
@@ -19,6 +23,10 @@ switch ($env) {
     }
 
     "local" {
+        if (-Not (Test-Path "$currentDir\.local")) {
+            Write-Host "Error: .local directory not found in current directory." -ForegroundColor DarkYellow
+            exit 1
+        }
         Copy-Item "$currentDir\.local.env" "$currentDir\.env" -Force
         Copy-Item "$currentDir\.local.testing.env" "$currentDir\.env.testing" -Force
 
