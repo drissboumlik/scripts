@@ -8,12 +8,12 @@
 # You might need to run this before: Set-ExecutionPolicy Bypass -Scope Process -Force if you are using powershell
 
 # Parameters:
-param( [string]$variableName, [string]$variableValue )
+param( [string]$variableName, [string]$variableValue = $null )
 
 . $PSScriptRoot\..\..\helpers\functions.ps1
 
-if (-not $variableName -or -not $variableValue) {
-	Write-Host "Error: Please provide both a variable name and value." -ForegroundColor DarkYellow
+if (-not $variableName) {
+	Write-Host "Error: Please provide a variable name." -ForegroundColor DarkYellow
 	exit 1
 }
 
@@ -28,7 +28,11 @@ try {
 		}
 
 		if ($exitCode -eq 0) {
-			Write-Host "Environment variable '$variableName' set to '$variableValue' at the system level." -ForegroundColor DarkGreen
+			if ($null -eq $variableValue) {
+				Write-Host "Environment variable '$variableName' removed from the system level." -ForegroundColor DarkGreen
+			} else {
+				Write-Host "Environment variable '$variableName' set to '$variableValue' at the system level." -ForegroundColor DarkGreen
+			}
 		} else {
 			Write-Host "Failed to set environment variable '$variableName'." -ForegroundColor DarkYellow
 		}
@@ -42,7 +46,11 @@ try {
 	$exitCode = $process.ExitCode
 
 	if ($exitCode -eq 0) {
-		Write-Host "Environment variable '$variableName' set to '$variableValue' at the system level." -ForegroundColor DarkGreen
+		if ([string]::IsNullOrWhiteSpace($variableValue)) {
+			Write-Host "Environment variable '$variableName' removed from the system level." -ForegroundColor DarkGreen
+		} else {
+			Write-Host "Environment variable '$variableName' set to '$variableValue' at the system level." -ForegroundColor DarkGreen
+		}
 	} else {
 		Write-Host "Failed to set environment variable '$variableName'." -ForegroundColor DarkYellow
 	}
