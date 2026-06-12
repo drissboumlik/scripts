@@ -23,7 +23,7 @@ switch ($env) {
     }
 
     "local" {
-        if (-Not (Test-Path "$currentDir\.local")) {
+        if (-Not (Test-Path "$currentDir\.local.env")) {
             Write-Host "Error: .local directory not found in current directory." -ForegroundColor DarkYellow
             exit 1
         }
