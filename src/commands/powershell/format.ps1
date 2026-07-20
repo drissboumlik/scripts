@@ -78,7 +78,14 @@ function Save-File {
     [System.IO.File]::WriteAllText($Path, $Content, $encoding)
 }
 
+# ---------------------------------------------------------------------------
+# Rule: Collapse 3+ consecutive blank lines down to exactly one blank line
+# ---------------------------------------------------------------------------
 function Optimize-BlankLines {
+    param ([string]$Content)
+
+    return $Content -replace '(\r?\n){3,}', "`r`n`r`n"
+}
 
 # ---------------------------------------------------------------------------
 # Rule: Remove blank lines at the top of a function body (after opening brace)
