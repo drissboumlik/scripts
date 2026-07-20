@@ -162,15 +162,26 @@ function Optimize-LineEndings {
     return $true
 }
 
+# ---------------------------------------------------------------------------
+# Orchestrator: run all custom rules in the correct order
+# ---------------------------------------------------------------------------
+function Invoke-FileFormatRules {
     param ([string]$FilePath)
 
     $original = Get-Content -Path $FilePath -Raw
+    $content  = $original
+    $content  = $original.TrimStart([char]0xFEFF)
+
+    # Structural / blank line rules first
+    $content = Optimize-BlankLines                 -Content $content
     $content = Optimize-FunctionBodyStart          -Content $content
     $content = Optimize-TryCatchBodyStart          -Content $content
     $content = Optimize-BlankLinesBeforeClosingBrace -Content $content
     $content = Optimize-ParamToTrySpacing          -Content $content
     $content = Optimize-ParamToTryBlankLine        -Content $content
     $content = Optimize-FunctionSpacing            -Content $content
+
+    if ($content -eq $original) {
         return $false
     }
 
@@ -192,17 +203,17 @@ Get-ChildItem "$targetDirectory\*.ps1" -Recurse -File | ForEach-Object {
         }
 
         # Step 1 — PSScriptAnalyzer fixes (indentation, whitespace, braces, etc.)
-        Invoke-ScriptAnalyzer -Path $_.FullName -Fix -Settings $settings
+        Invoke-ScriptAnalyzer -Path $fileFullName -Fix -Settings $settings
 
-        # Step 2 — Collapse consecutive blank lines (PSScriptAnalyzer doesn't handle this)
-        $trimmed = Optimize-BlankLines -FilePath $_.FullName
-        if ($trimmed) {
-            Write-Host "  [blank lines] collapsed in $($_.Name)" -ForegroundColor DarkGray
+        # Step 2 — Custom formatting rules
+        $changed = Invoke-FileFormatRules -FilePath $fileFullName
+        if ($changed) {
+            Write-Host "  [custom rules] applied to $fileName" -ForegroundColor DarkGray
         }
 
         $formatted++
     } catch {
-        $errors += "Error formatting file: $($_.FullName) - $_"
+        $errors += "Error formatting file: $($fileFullName) - $_"
     }
 }
 
