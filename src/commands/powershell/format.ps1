@@ -98,16 +98,20 @@ function Optimize-ParamToTrySpacing {
     return $Content -replace '(\))\s*(\r?\n)(\s*(\r?\n)+)(\s*try\s*\{)', '$1$2$5'
 }
 
+# ---------------------------------------------------------------------------
+# Rule: Ensure exactly one blank line between param block close and try {
+# ---------------------------------------------------------------------------
+function Optimize-ParamToTryBlankLine {
+    param ([string]$Content)
+
+    return $Content -replace '(\))([ \t]*\r?\n)([ \t]*try\s*\{)', '$1$2$2$3'
+}
     param ([string]$FilePath)
 
     $original = Get-Content -Path $FilePath -Raw
     $content = Optimize-FunctionBodyStart          -Content $content
     $content = Optimize-ParamToTrySpacing          -Content $content
-
-    # Collapse 3+ consecutive newlines (CRLF or LF) down to exactly one blank line
-    $fixed = $original -replace '(\r?\n){3,}', "`r`n`r`n"
-
-    if ($original -eq $fixed) {
+    $content = Optimize-ParamToTryBlankLine        -Content $content
         return $false
     }
 
