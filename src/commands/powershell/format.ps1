@@ -11,7 +11,7 @@ if (-not (Test-Path -Path $targetDirectory)) {
 }
 
 
-$errors = @()
+$errors    = @()
 $formatted = 0
 
 # Ensure PSScriptAnalyzer is installed
@@ -71,6 +71,13 @@ function Get-FileEncoding {
     return [System.Text.UTF8Encoding]::new($false)
 }
 
+function Save-File {
+    param ([string]$Path, [string]$Content)
+
+    $encoding = Get-FileEncoding -Path $Path
+    [System.IO.File]::WriteAllText($Path, $Content, $encoding)
+}
+
 function Optimize-BlankLines {
     param ([string]$FilePath)
 
@@ -83,8 +90,7 @@ function Optimize-BlankLines {
         return $false
     }
 
-    $encoding = Get-FileEncoding -Path $FilePath
-    [System.IO.File]::WriteAllText($FilePath, $fixed, $encoding)
+    Save-File -Path $FilePath -Content $content
     return $true
 }
 
