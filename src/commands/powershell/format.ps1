@@ -89,10 +89,20 @@ function Optimize-FunctionBodyStart {
     return $Content -replace '(\{[ \t]*\r?\n)(\s*\r?\n)+', '$1'
 }
 
+# ---------------------------------------------------------------------------
+# Rule: Remove blank lines between param block closing paren and try {
+# ---------------------------------------------------------------------------
+function Optimize-ParamToTrySpacing {
+    param ([string]$Content)
+
+    return $Content -replace '(\))\s*(\r?\n)(\s*(\r?\n)+)(\s*try\s*\{)', '$1$2$5'
+}
+
     param ([string]$FilePath)
 
     $original = Get-Content -Path $FilePath -Raw
     $content = Optimize-FunctionBodyStart          -Content $content
+    $content = Optimize-ParamToTrySpacing          -Content $content
 
     # Collapse 3+ consecutive newlines (CRLF or LF) down to exactly one blank line
     $fixed = $original -replace '(\r?\n){3,}', "`r`n`r`n"
