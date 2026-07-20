@@ -140,6 +140,28 @@ function Optimize-TryCatchBodyStart {
     return $Content -replace '(\b(try|catch|finally)\b[^{]*\{[ \t]*\r?\n)(\s*\r?\n)+', '$1'
 }
 
+# ---------------------------------------------------------------------------
+# Pre-pass: Normalize mixed line endings to CRLF before anything else runs
+# ---------------------------------------------------------------------------
+function Optimize-LineEndings {
+    param ([string]$Path)
+
+    $bytes = [System.IO.File]::ReadAllBytes($Path)
+    $text  = [System.Text.Encoding]::UTF8.GetString($bytes)
+    $text = $text.TrimStart([char]0xFEFF)
+
+    # Normalize all line endings to LF first, then convert to CRLF
+    $normalized = $text -replace "`r`n", "`n" -replace "`r", "`n" -replace "`n", "`r`n"
+
+    if ($normalized -eq $text) {
+        return $false
+    }
+
+    $encoding = Get-FileEncoding -Path $Path
+    [System.IO.File]::WriteAllText($Path, $normalized, $encoding)
+    return $true
+}
+
     param ([string]$FilePath)
 
     $original = Get-Content -Path $FilePath -Raw
@@ -158,7 +180,16 @@ function Optimize-TryCatchBodyStart {
 
 Get-ChildItem "$targetDirectory\*.ps1" -Recurse -File | ForEach-Object {
     try {
-        Write-Host "`n`nFormatting: $($_.FullName)`n" -ForegroundColor Cyan
+        $fileFullName = $_.FullName
+        $fileName = $_.Name
+
+        Write-Host "`n`nFormatting: $fileFullName`n" -ForegroundColor Cyan
+
+        # Pre-pass — normalize line endings before PSScriptAnalyzer runs
+        $lineEndingsFixed = Optimize-LineEndings -Path $fileFullName
+        if ($lineEndingsFixed) {
+            Write-Host "  [line endings] normalized in $fileName" -ForegroundColor DarkGray
+        }
 
         # Step 1 — PSScriptAnalyzer fixes (indentation, whitespace, braces, etc.)
         Invoke-ScriptAnalyzer -Path $_.FullName -Fix -Settings $settings
