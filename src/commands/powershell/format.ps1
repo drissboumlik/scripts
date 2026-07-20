@@ -106,12 +106,29 @@ function Optimize-ParamToTryBlankLine {
 
     return $Content -replace '(\))([ \t]*\r?\n)([ \t]*try\s*\{)', '$1$2$2$3'
 }
+
+# ---------------------------------------------------------------------------
+# Rule: Exactly one blank line between function definitions
+# ---------------------------------------------------------------------------
+function Optimize-FunctionSpacing {
+    param ([string]$Content)
+
+    # Remove all blank lines between closing brace of one function and start of next
+    $Content = $Content -replace '(\}[ \t]*\r?\n)(\s*\r?\n)+([ \t]*function\s)', '$1$3'
+
+    # Ensure exactly one blank line between them
+    $Content = $Content -replace '(\})([ \t]*\r?\n)([ \t]*function\s)', '$1$2$2$3'
+
+    return $Content
+}
+
     param ([string]$FilePath)
 
     $original = Get-Content -Path $FilePath -Raw
     $content = Optimize-FunctionBodyStart          -Content $content
     $content = Optimize-ParamToTrySpacing          -Content $content
     $content = Optimize-ParamToTryBlankLine        -Content $content
+    $content = Optimize-FunctionSpacing            -Content $content
         return $false
     }
 
