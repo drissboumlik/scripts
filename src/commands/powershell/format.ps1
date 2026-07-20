@@ -130,10 +130,21 @@ function Optimize-BlankLinesBeforeClosingBrace {
 
     return $Content -replace '(\r?\n)(\s*\r?\n)+([ \t]*\})', '$1$3'
 }
+
+# ---------------------------------------------------------------------------
+# Rule: Remove blank lines immediately after try/catch/finally opening brace
+# ---------------------------------------------------------------------------
+function Optimize-TryCatchBodyStart {
+    param ([string]$Content)
+
+    return $Content -replace '(\b(try|catch|finally)\b[^{]*\{[ \t]*\r?\n)(\s*\r?\n)+', '$1'
+}
+
     param ([string]$FilePath)
 
     $original = Get-Content -Path $FilePath -Raw
     $content = Optimize-FunctionBodyStart          -Content $content
+    $content = Optimize-TryCatchBodyStart          -Content $content
     $content = Optimize-BlankLinesBeforeClosingBrace -Content $content
     $content = Optimize-ParamToTrySpacing          -Content $content
     $content = Optimize-ParamToTryBlankLine        -Content $content
