@@ -34,6 +34,7 @@ $settings = @{
         'PSPossibleIncorrectComparisonWithNull'
         'PSPossibleIncorrectUsageOfAssignmentOperator'
         'PSAvoidLongLines'
+        'PSUseApprovedVerbs'
     )
 
     Rules = @{
