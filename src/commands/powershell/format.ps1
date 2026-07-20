@@ -13,6 +13,8 @@ if (-not (Test-Path -Path $targetDirectory)) {
 
 $errors    = @()
 $formatted = 0
+$functionViolationsSummary = @()
+$results   = @()
 
 # Ensure PSScriptAnalyzer is installed
 if (-not (Get-Module PSScriptAnalyzer -ListAvailable)) {
@@ -149,6 +151,25 @@ function Optimize-TryCatchBodyStart {
 }
 
 # ---------------------------------------------------------------------------
+# Rule: Enforce PowerShell function naming convention Verb-Noun
+# ---------------------------------------------------------------------------
+function Test-FunctionNameConvention {
+    param ([string]$Content)
+
+    $violations = [System.Collections.Generic.List[string]]::new()
+
+    foreach ($match in [regex]::Matches($Content, '(?im)^\s*function\s+(?<name>[A-Za-z][A-Za-z0-9]*)\s*\{')) {
+        $name = $match.Groups['name'].Value
+
+        if ($name -notmatch '^[A-Za-z][A-Za-z0-9]*-[A-Za-z][A-Za-z0-9]*$') {
+            $violations.Add($name)
+        }
+    }
+
+    return $violations
+}
+
+# ---------------------------------------------------------------------------
 # Pre-pass: Normalize mixed line endings to CRLF before anything else runs
 # ---------------------------------------------------------------------------
 function Optimize-LineEndings {
@@ -189,12 +210,23 @@ function Invoke-FileFormatRules {
     $content = Optimize-ParamToTryBlankLine        -Content $content
     $content = Optimize-FunctionSpacing            -Content $content
 
-    if ($content -eq $original) {
-        return $false
+    $functionViolations = Test-FunctionNameConvention -Content $content
+
+    if ($content -eq $original -and $functionViolations.Count -eq 0) {
+        return [pscustomobject]@{
+            Changed            = $false
+            FunctionViolations = @()
+        }
     }
 
-    Save-File -Path $FilePath -Content $content
-    return $true
+    if ($content -ne $original) {
+        Save-File -Path $FilePath -Content $content
+    }
+
+    return [pscustomobject]@{
+        Changed            = $content -ne $original
+        FunctionViolations = @($functionViolations)
+    }
 }
 
 Get-ChildItem "$targetDirectory\*.ps1" -Recurse -File | ForEach-Object {
@@ -202,30 +234,58 @@ Get-ChildItem "$targetDirectory\*.ps1" -Recurse -File | ForEach-Object {
         $fileFullName = $_.FullName
         $fileName = $_.Name
 
-        Write-Host "`n`nFormatting: $fileFullName`n" -ForegroundColor Cyan
-
         # Pre-pass — normalize line endings before PSScriptAnalyzer runs
         $lineEndingsFixed = Optimize-LineEndings -Path $fileFullName
-        if ($lineEndingsFixed) {
-            Write-Host "  [line endings] normalized in $fileName" -ForegroundColor DarkGray
-        }
 
         # Step 1 — PSScriptAnalyzer fixes (indentation, whitespace, braces, etc.)
         Invoke-ScriptAnalyzer -Path $fileFullName -Fix -Settings $settings
 
         # Step 2 — Custom formatting rules
-        $changed = Invoke-FileFormatRules -FilePath $fileFullName
-        if ($changed) {
-            Write-Host "  [custom rules] applied to $fileName" -ForegroundColor DarkGray
+        $ruleResult = Invoke-FileFormatRules -FilePath $fileFullName
+
+        $result = "formatted"
+        if ($ruleResult.FunctionViolations.Count -gt 0) {
+            $functionViolationsSummary += foreach ($functionName in $ruleResult.FunctionViolations) {
+                [pscustomobject]@{
+                    File         = $fileName
+                    FunctionName = $functionName
+                }
+            }
+
+            $errors += "Function names in $fileName should use the Verb-Noun convention: $($ruleResult.FunctionViolations -join ', ')"
+            $result = "naming violations"
+        }
+
+        $results += [pscustomobject]@{
+            FileName = $fileName
+            Result   = $result
         }
 
         $formatted++
     } catch {
         $errors += "Error formatting file: $($fileFullName) - $_"
+        $results += [pscustomobject]@{
+            FileName = $_.Name
+            Result   = "error"
+        }
     }
 }
 
-Write-Host "`nFormatted $formatted files" -ForegroundColor Green
+Write-Host "`nFormatted $formatted files`n" -ForegroundColor Green
+
+$results | ForEach-Object {
+    $fileName = $_.FileName
+    $result = $_.Result
+    $dots = '.' * (50 - $fileName.Length)
+    Write-Host "$fileName $dots $result"
+}
+
+if ($functionViolationsSummary.Count -gt 0) {
+    Write-Host "`nFunction naming violations:" -ForegroundColor Yellow
+    $functionViolationsSummary | ForEach-Object {
+        Write-Host " - $($_.File): $($_.FunctionName)" -ForegroundColor Yellow
+    }
+}
 
 if ($errors.Count -gt 0) {
     Write-Host "`nErrors encountered:" -ForegroundColor Red
