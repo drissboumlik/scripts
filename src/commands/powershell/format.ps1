@@ -79,9 +79,20 @@ function Save-File {
 }
 
 function Optimize-BlankLines {
+
+# ---------------------------------------------------------------------------
+# Rule: Remove blank lines at the top of a function body (after opening brace)
+# ---------------------------------------------------------------------------
+function Optimize-FunctionBodyStart {
+    param ([string]$Content)
+
+    return $Content -replace '(\{[ \t]*\r?\n)(\s*\r?\n)+', '$1'
+}
+
     param ([string]$FilePath)
 
     $original = Get-Content -Path $FilePath -Raw
+    $content = Optimize-FunctionBodyStart          -Content $content
 
     # Collapse 3+ consecutive newlines (CRLF or LF) down to exactly one blank line
     $fixed = $original -replace '(\r?\n){3,}', "`r`n`r`n"
