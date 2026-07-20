@@ -122,10 +122,19 @@ function Optimize-FunctionSpacing {
     return $Content
 }
 
+# ---------------------------------------------------------------------------
+# Rule: Remove blank lines immediately before a closing brace
+# ---------------------------------------------------------------------------
+function Optimize-BlankLinesBeforeClosingBrace {
+    param ([string]$Content)
+
+    return $Content -replace '(\r?\n)(\s*\r?\n)+([ \t]*\})', '$1$3'
+}
     param ([string]$FilePath)
 
     $original = Get-Content -Path $FilePath -Raw
     $content = Optimize-FunctionBodyStart          -Content $content
+    $content = Optimize-BlankLinesBeforeClosingBrace -Content $content
     $content = Optimize-ParamToTrySpacing          -Content $content
     $content = Optimize-ParamToTryBlankLine        -Content $content
     $content = Optimize-FunctionSpacing            -Content $content
